@@ -1,0 +1,1448 @@
+<!DOCTYPE html>
+<html lang="ru">
+
+<head>
+	<script>
+		//обертка для mammoth, автоматически вводит указанный word файл в div с id "word"
+		async function loadDocx(docxUrl, elementId = 'word') {
+			const outputElement = document.getElementById(elementId);
+			if (!outputElement) {
+				console.error(`Элемент с ID '${elementId}' не найден`);
+				return;
+			}
+
+			try {
+				outputElement.innerHTML = 'Загрузка...';
+				
+				const response = await fetch(docxUrl);
+				if (!response.ok) {
+					throw new Error(`Ошибка HTTP: ${response.status}`);
+				}
+				
+				const arrayBuffer = await response.arrayBuffer();
+				
+				const header = new Uint8Array(arrayBuffer.slice(0, 4));
+				const zipHeader = [0x50, 0x4B, 0x03, 0x04]; 
+				if (!header.every((val, i) => val === zipHeader[i])) {
+					throw new Error("Файл не является DOCX (неверный заголовок)");
+				}
+				
+				const result = await mammoth.convertToHtml({ arrayBuffer });
+				outputElement.innerHTML = result.value;
+				
+			} catch (err) {
+				console.error("Ошибка:", err);
+				outputElement.innerHTML = `
+					<div style="color: red">
+						Ошибка загрузки документа: ${err.message}<br>
+						Возможно файл отсутствует или блокируется ☆☆☆CORS☆☆☆ браузера. 
+					</div>
+				`;
+			}
+		}
+
+		loadDocx('document.docx');
+	</script>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta http-equiv="X-UA-Compatible" content="ie=edge">
+
+	<title>Практические математические методы</title>
+	<script src="https://unpkg.com/mammoth@1.4.0/mammoth.browser.min.js"></script>
+	<script src="js/Solvers.js"></script>
+
+	<link rel="stylesheet"
+		href="https://fonts.googleapis.com/css?family=Roboto:100,100italic,300,300italic,regular,italic,500,500italic,700,700italic,900,900italic&amp;subset=cyrillic">
+	<link rel='stylesheet' href='https://use.fontawesome.com/releases/v5.2.0/css/all.css?ver=5.0.3' type='text/css'
+		media='all' />
+	<link rel='stylesheet' id='art_net_theme-material-icons-css'
+		href='https://fonts.googleapis.com/icon?family=Material+Icons&#038;ver=5.0.3' type='text/css' media='all' />
+	<link rel="stylesheet" href="css/bootstrap.min.css">
+	<link rel="stylesheet" href="css/style.css">
+
+	<link rel="stylesheet" href="css/meanmenu.min.css">
+	<link rel="stylesheet" href="css/ant109_header.css">
+
+</head>
+
+<body>
+	<header class="ant109_header-wrapper">
+		<div class="ant109_header-header-main">
+			<div class="ant109_header-header-border d-none d-md-block">
+				
+			<div class="ant109_header-header-bottm ant109_header-header-sticky">
+				<div class="container-fluid d-flex justify-content-between align-items-center">
+					
+					<div class="ant109_header-min-menu">
+						<nav id="ant109_header-mobile-menu">
+							<ul>
+								<li><a href="#!" onclick="RenderPage('Home')">Главная</a></li>
+								<li><a href="#!" onclick="RenderPage('Slay')">СЛАУ</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('SA')">Точные</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('SAGauss')">Метод Гаусса</a></li>
+												<li><a href="#!" onclick="RenderPage('SAKramer')">Метод Крамера</a></li>
+												<li><a href="#!" onclick="RenderPage('SAGaussJordan')">Гаусса-Жордана</a></li>
+												<li><a href="#!" onclick="RenderPage('SAMatrix')">Матричный</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('SI')">Итерационные</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('SISSGauss')">Гаусса-Зейделя</a></li>
+												<li><a href="#!" onclick="RenderPage('SIJakobi')">Метод Якоби</a></li>
+												<li><a href="#!" onclick="RenderPage('SIRelax')">Релаксации</a></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('NonLinearEquations')">Нелинейные уравнения</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('RL')">Локализация корней</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('RLAnalytical')">Аналитический способ</a></li>
+												<li><a href="#!" onclick="RenderPage('RLGraphical')">Графический способ</a></li>
+												<li><a href="#!" onclick="RenderPage('RLTabular')">Табличный способ</a></li>
+												<li><a href="#!" onclick="RenderPage('RMR')">Методы уточнения корней</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('RM')">Интервальные методы уточнения</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('RMBisection')">Метод половинного деления</a></li>
+												<li><a href="#!" onclick="RenderPage('RMChords')">Метод хорд</a></li>
+												<li><a href="#!" onclick="RenderPage('RMGolden')">Метод золотого сечения</a></li>
+												<li><a href="#!" onclick="RenderPage('RMRidders')">Метод Риддера</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('IM')">Итерационные методы уточнения</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('IMNewton')">Метод Ньютона (касательных)</a></li>
+												<li><a href="#!" onclick="RenderPage('IMInitial')">Выбор начального приближения</a></li>
+												<li><a href="#!" onclick="RenderPage('IMModified')">Модифицированный метод Ньютона</a></li>
+												<li><a href="#!" onclick="RenderPage('IMSecant')">Метод секущих</a></li>
+												<li><a href="#!" onclick="RenderPage('IMIteration')">Метод простой итерации</a></li>
+												<li><a href="#!" onclick="RenderPage('IMMuller')">Метод Мюллера</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('SNE')">Решение систем Н/УР</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('SNELocalization')">Локализация</a></li>
+												<li><a href="#!" onclick="RenderPage('SNENewton')">Метод Ньютона</a></li>
+												<li><a href="#!" onclick="RenderPage('SNEIteration')">Метод простых итераций</a></li>
+												<li><a href="#!" onclick="RenderPage('SNECombined')">Комбинированные методы нелинейных уравнений с одной неизвестной</a></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li><a href="#" onclick="RenderPage('Interpolation')">Интерполяция</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('GI')">Глобальная интерполяция</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('GILagrange')">Интерполяционная полином Лагранжа</a></li>
+												<li><a href="#!" onclick="RenderPage('GINewtonFirst')">1 интерполяционная формула Ньютона</a></li>
+												<li><a href="#!" onclick="RenderPage('GINewtonSecond')">2 формула Ньютона</a></li>
+												<li><a href="#!" onclick="RenderPage('GIGauss')">Формула Гаусса</a></li>
+												<li><a href="#!" onclick="RenderPage('GIBessel')">Формула Бесселя</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('IS')">Интерполяция сплайнами</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('ISSLinear')">Кусочно-линейная</a></li>
+												<li><a href="#!" onclick="RenderPage('ISSQuadratic')">Кусочно-квадратичная</a></li>
+												<li><a href="#!" onclick="RenderPage('ISSSimple')">Простейший подход к сплайнам</a></li>
+												<li><a href="#!" onclick="RenderPage('ISSCubic')">Кусочно-кубическая</a></li>
+												<li><a href="#!" onclick="RenderPage('ISSLemma')">Леммы о сплаймах</a></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('A')">Аппроксимация</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('ALeastSquares')">Метод наименьших квадратов</a></li>
+										<li><a href="#!" onclick="RenderPage('AMinimization')">Минимизация данных по методу наименьших квадратов</a></li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('NI')">Численное интегрирование</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('NIRectangle')">Метод прямоугольников</a></li>
+										<li><a href="#!" onclick="RenderPage('NITaylor')">Аппроксимация рядом Тейлора</a></li>
+										<li><a href="#!" onclick="RenderPage('NINewtonCotes')">Построение квадратурных формул Ньютона-Котеса</a></li>
+										<li><a href="#!" onclick="RenderPage('NITrapezoid')">Метод трапеций</a></li>
+										<li><a href="#!" onclick="RenderPage('NIParabola')">Метод парабол</a></li>
+										<li><a href="#!" onclick="RenderPage('NINewtonCotesSenior')">Старшая формула Ньютона-Котеса</a></li>
+										<li><a href="#!" onclick="RenderPage('NIChebyshev')">Метод Чебышева</a></li>
+										<li><a href="#!" onclick="RenderPage('NIGaussLegendre')">Метод Гаусса-Лежандра</a></li>
+										<li><a href="#!" onclick="RenderPage('NIMonteCarlo')">Метод Монте-Карло</a></li>
+										<li><a href="#!" onclick="RenderPage('MNI')">Кратные интегралы</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('MNIFormulas')">Метод повторного применения квадр. формул</a></li>
+												<li><a href="#!" onclick="RenderPage('MNIRectangle')">Формула прямоугольников</a></li>
+												<li><a href="#!" onclick="RenderPage('MNITangent')">Формула касательных</a></li>
+												<li><a href="#!" onclick="RenderPage('MNITrapezoid')">Формула трапеций</a></li>
+												<li><a href="#!" onclick="RenderPage('MNISimpson')">Формула Симпсона</a></li>
+												<li><a href="#!" onclick="RenderPage('MNILusternik')">Метод Люстерна-Иткина</a></li>
+												<li><a href="#!" onclick="RenderPage('MNIMonteCarlo')">Метод Монте-Карло</a></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('ND')">Численное дифференцирование</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('NDCoefficients')">Метод определенных коэффициентов</a></li>
+										<li><a href="#!" onclick="RenderPage('NDFiniteDifference')">Конечно-разностный метод</a></li>
+										<li><a href="#!" onclick="RenderPage('NDIndeterminate')">Метод неопределенных коэффициентов</a></li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('IVP')">Численное решение ОДУ</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('IVPCauchy')">Численные методы решения з.Коши</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('IVPEulerLeft')">Левые прямоугольники</a></li>
+												<li><a href="#!" onclick="RenderPage('IVPEulerRight')">Правые прямоугольники</a></li>
+												<li><a href="#!" onclick="RenderPage('IVPTrapezoid')">Метод трапеций</a></li>
+												<li><a href="#!" onclick="RenderPage('IVPRungeKutta')">Метод Рунге-Кутты</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('IVPSys')">Численные методы з.Коши для систем ОДУ</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('IVPSysEuler')">Метод Эйлера для 2-х ОДУ</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('IVPStiff')">Решение жестких ОДУ</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('IVPStiffExplicit')">Явный метод Эйлера</a></li>
+												<li><a href="#!" onclick="RenderPage('IVPStiffImplicit')">Неявный метод Эйлера</a></li>
+											</ul>
+										</li>
+										<li><a href="#!" onclick="RenderPage('IVPBoundary')">Решение краевых задач ОДУ</a>
+											<ul class="ant109_header-submenu">
+												<li><a href="#!" onclick="RenderPage('IVPBoundaryFinite')">Метод конечной разности</a></li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('NPDE')">Решение уравнений частных производных</a>
+									<ul class="ant109_header-submenu">
+										<li><a href="#!" onclick="RenderPage('PDEFinite')">Конечное-разностные методы</a></li>
+										<li><a href="#!" onclick="RenderPage('PDEExplicit')">Явная схема</a></li>
+										<li><a href="#!" onclick="RenderPage('PDEImplicit')">Неявная схема</a></li>
+									</ul>
+								</li>
+								<li><a href="#!" onclick="RenderPage('About')">О нас</a></li>
+							</ul>
+						</nav>
+					</div>
+				</div>
+				<div class="ant109_header-mobile-menu-active">
+					<div class="container-fluid">
+						<div class="row">
+							<div class="col-sm-12">
+								<div class="ant109_header-mobile-menu" ></div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div class="" id="mainBody">
+
+	</div>
+	
+	<script type='text/javascript' src='js/jquery.js'></script>
+	<script type='text/javascript' src='js/jquery-migrate.min.js'></script>
+	<script type='text/javascript' src='js/bootstrap.min.js'></script>
+	
+	<script type='text/javascript' src="js/jquery.meanmenu.min.js"></script>
+<script type='text/javascript'> 
+	function RenderPage(tip) {
+		let content = '';
+		let docxUrl = '';
+		switch(tip) {
+			case 'Home':
+				content = `
+					<div class="content-section">
+						<h1>Практические математические методы</h1>
+						<div class="hero-section">
+							<img src="img/start.jpg" alt="Математические методы">
+							<div class="hero-text">
+								<p>Онлайн-платформа для решения прикладных математических задач с пошаговыми объяснениями</p>
+								<div class="features">
+									<div class="feature-item">
+										<i class="fas fa-calculator"></i>
+										<h3>10+ методов решения</h3>
+									</div>
+									<div class="feature-item">
+										<i class="fas fa-chart-line"></i>
+										<h3>Визуализация результатов</h3>
+									</div>
+									<div class="feature-item">
+										<i class="fas fa-file-alt"></i>
+										<h3>Экспорт отчетов</h3>
+									</div>
+								</div>
+							</div>
+						</div>
+						<div class="quick-links">
+							<h2>Популярные методы:</h2>
+							<div class="method-cards">
+								<div class="card" onclick="RenderPage('SAGauss')">
+									<h4>Метод Гаусса</h4>
+									<p>Решение систем линейных уравнений</p>
+								</div>
+								<div class="card" onclick="RenderPage('SAKramer')">
+									<h4>Метод Крамера</h4>
+									<p>С использованием определителей</p>
+								</div>
+								<div class="card" onclick="RenderPage('RL')">
+									<h4>Локализация корней</h4>
+									<p>Графический анализ функций</p>
+								</div>
+							</div>
+						</div>
+					</div>
+				`;
+				break;
+			case 'Slay':
+				docxUrl = "word/SLAU-MATHPROBLEM.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+					</div>
+				`;
+				break;
+			case 'SAGauss':
+				docxUrl = "word/SLAU-GAUSS.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="2" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss" selected>Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SAKramer':
+				docxUrl = "word/SLAU-KRAMER.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="2" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer" selected>Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SAGaussJordan':
+				docxUrl = "word/SLAU-GAUSSJORDAN.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss" {}>Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan" selected>Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SAMatrix':
+				docxUrl = "word/SLAU-MATRIX.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix" selected>Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SASweep':
+				docxUrl = "word/SLAU-SASweep.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix" selected>Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SISSGauss':
+				docxUrl = "word/SLAU-I-GAUSSZEIDEL.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel" selected>Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SIJakobi':
+				docxUrl = "word/SLAU-I-JAKOBI.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi" selected>Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax">Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'SIRelax':
+				docxUrl = "word/SLAU-I-RELAX.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<label for="equations">Количество уравнений:</label>
+									<input type="number" id="equations" class="form-control" min="1" max="10" value="3" oninput="generateMatrixInputs(this.value)">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="СЛАУ">
+											<option value="gauss">Гаусс</option>
+											<option value="kramer">Крамер</option>
+											<option value="matrix">Обратная матрица</option>
+											<option value="gauss-jordan">Гаусс-Жордан</option>
+											<option value="jacobi">Якоби</option>
+											<option value="seidel">Гаусс-Зейдель</option>
+											<option value="relax" selected>Релаксация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'NonLinearEquations':
+				docxUrl = "word/NONLINEAR-MATHPROBLEM.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+					</div>
+				`;
+				break;
+			case 'RL':
+				docxUrl = "word/NONLINEAR-MATHPROBLEM.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+					</div>
+				`;
+				break;
+			case 'RLAnalytical':
+				docxUrl = "word/ROOTLOC-ANALYTIC.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<input type="button" onclick="generateNonlinearInputs()" value="Display">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLAnalytical" selected>Аналитическая локализация корней</option>
+											<option value="RLGraphical">Графическая локализация корней</option>
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="RMR">Методы уточнения корней</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RLGraphical':
+				docxUrl = "word/ROOTLOC-GRAPHIC.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<input type="button" onclick="generateNonlinearInputs()" value="Display">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLAnalytical" selected>Аналитическая локализация корней</option>
+											<option value="RLGraphical" selected>Графическая локализация корней</option>
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="RMR">Методы уточнения корней</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RLTabular':
+				docxUrl = "word/ROOTLOC-TABLE.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<input type="button" onclick="generateNonlinearInputs()" value="Display">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLAnalytical" selected>Аналитическая локализация корней</option>
+											<option value="RLGraphical">Графическая локализация корней</option>
+											<option value="RLTabular" selected>Табличная локализация корней</option>
+											<option value="RMR">Методы уточнения корней</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RMR':
+				docxUrl = "word/ROOTLOC-TABLE.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group">
+									<input type="button" onclick="generateNonlinearInputs()" value="Display">
+								</div>
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RM':
+				docxUrl = "word/NONLINEAR-MATHPROBLEM.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RMBisection':
+				docxUrl = "word/NONLINEAR-IN-HALF.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RMChords':
+				docxUrl = "word/NONLINEAR-IN-HORD.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RMGolden':
+				docxUrl = "word/NONLINEAR-IN-GOLDEN.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'RMRidders':
+				docxUrl = "word/NONLINEAR-IN-RIDDERS.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'IMNewton':
+				docxUrl = "word/NONLINEAR-IT-NEWTON.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+					</div>
+				`;
+				break;
+			case 'IMInitial':
+				docxUrl = "word/NONLINEAR-IT-NEWTON-SP.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+					</div>
+				`;
+				break;
+			case 'IMModified':
+				docxUrl = "word/NONLINEAR-IT-MOD-NEWTON.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="IMHalfDivision">Половинное деление</option>
+											<option value="IMChord">Хорды</option>
+											<option value="IMGoldenRatio">Золотое сечение</option>
+											<option value="IMRidder">Риддер</option>
+											<option value="IMNewton">Ньютон</option>
+											<option value="IMModNewton" selected>Модифицированный Ньютон</option>
+											<option value="IMSecant">Секущие</option>
+											<option value="IMMuller">Мюллер</option>
+											<option value="IMSimpleIteration">Простая итерация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'IMSecant':
+				docxUrl = "word/NONLINEAR-IT-CUT.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="IMHalfDivision">Половинное деление</option>
+											<option value="IMChord">Хорды</option>
+											<option value="IMGoldenRatio">Золотое сечение</option>
+											<option value="IMRidder">Риддер</option>
+											<option value="IMNewton">Ньютон</option>
+											<option value="IMModNewton">Модифицированный Ньютон</option>
+											<option value="IMSecant" selected>Секущие</option>
+											<option value="IMMuller">Мюллер</option>
+											<option value="IMSimpleIteration">Простая итерация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'IMIteration':
+				docxUrl = "word/NONLINEAR-IT-SIMPLE-IT.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="IMHalfDivision">Половинное деление</option>
+											<option value="IMChord">Хорды</option>
+											<option value="IMGoldenRatio">Золотое сечение</option>
+											<option value="IMRidder">Риддер</option>
+											<option value="IMNewton">Ньютон</option>
+											<option value="IMModNewton">Модифицированный Ньютон</option>
+											<option value="IMSecant">Секущие</option>
+											<option value="IMMuller">Мюллер</option>
+											<option value="IMSimpleIteration" selected>Простая итерация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'IMMuller':
+				docxUrl = "word/NONLINEAR-IT-MULLER.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Нелинейные уравнения">
+											<option value="RLTabular">Табличная локализация корней</option>
+											<option value="IMHalfDivision">Половинное деление</option>
+											<option value="IMChord">Хорды</option>
+											<option value="IMGoldenRatio">Золотое сечение</option>
+											<option value="IMRidder">Риддер</option>
+											<option value="IMNewton">Ньютон</option>
+											<option value="IMModNewton">Модифицированный Ньютон</option>
+											<option value="IMSecant">Секущие</option>
+											<option value="IMMuller" selected>Мюллер</option>
+											<option value="IMSimpleIteration">Простая итерация</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'GILagrange':
+				docxUrl = "word/INTERPOLATION-GLOB-LAGRANGE.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange" selected>Лагранж</option>
+											<option value="GINewtonFirst">1 интерполяционная формула Ньютона</option>
+											<option value="GINewtonSecond">2 формула Ньютона</option>
+											<option value="GIGauss">Формула Гаусса</option>
+											<option value="GIBessel">Формула Бесселя</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'GINewtonFirst':
+				docxUrl = "word/INTERPOLATION-GLOB-1NEWTON.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="GINewtonFirst" selected>1 интерполяционная формула Ньютона</option>
+											<option value="GINewtonSecond">2 формула Ньютона</option>
+											<option value="GIGauss">Формула Гаусса</option>
+											<option value="GIBessel">Формула Бесселя</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'GINewtonSecond':
+				docxUrl = "word/INTERPOLATION-GLOB-2NEWTON.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange" selected>Лагранж</option>
+											<option value="GINewtonFirst">1 интерполяционная формула Ньютона</option>
+											<option value="GINewtonSecond">2 формула Ньютона</option>
+											<option value="GIGauss">Формула Гаусса</option>
+											<option value="GIBessel">Формула Бесселя</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'GIGauss':
+			docxUrl = "word/INTERPOLATION-GLOB-GAUSS.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange" selected>Лагранж</option>
+											<option value="GINewtonFirst">1 интерполяционная формула Ньютона</option>
+											<option value="GINewtonSecond">2 формула Ньютона</option>
+											<option value="GIGauss">Формула Гаусса</option>
+											<option value="GIBessel">Формула Бесселя</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'GIBessel':
+				docxUrl = "word/INTERPOLATION-GLOB-BESSEL.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange" selected>Лагранж</option>
+											<option value="GINewtonFirst">1 интерполяционная формула Ньютона</option>
+											<option value="GINewtonSecond">2 формула Ньютона</option>
+											<option value="GIGauss">Формула Гаусса</option>
+											<option value="GIBessel">Формула Бесселя</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ISSLinear':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ISSQuadratic':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ISSSimple':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ISSCubic':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ISSLemma':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'A':
+				docxUrl = "word/APPROXIMATION-MATHPROBLEM.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'ALeastSquares':
+				docxUrl = "word/APPROXIMATION-SQUARES.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			case 'AMinimization':
+				docxUrl = "word/INTERPOLATION-SPLINE-PARTLINEAR.docx";
+				content = `
+					<div class="content-section">
+						<div id="word" style="height:300px; overflow-y:scroll;"></div>
+						<div class="input-section mt-4">
+							<h3>Решение задачи</h3>
+							<form id="solver-form">
+								<div class="form-group mt-3">
+									<label for="method">Метод решения:</label>
+									<select id="method" class="form-control" onchange="generateInputs(this.value)">
+										<optgroup label="Интерполяция">
+											<option value="GILagrange">Лагранж</option>
+											<option value="ISSLinear" selected>Линейный сплайн</option>
+										</optgroup>
+									</select>
+								</div>
+								<div id="matrix-input" class="mt-3"></div>
+								<div class="form-group mt-3" id="eps-input" style="display:none;">
+									<label for="eps">Точность (ε):</label>
+									<input type="number" id="eps" class="form-control" value="0.0001" step="0.0001">
+								</div>
+								<button type="button" class="btn btn-primary mt-3" onclick="solveSystem()">Решить</button>
+							</form>
+						</div>
+						<div id="steps-output" class="mt-4"></div>
+						<div id="solution-result" class="mt-4"></div>
+					</div>
+				`;
+				break;
+			default:
+				content = `
+					<div class="content-section">
+						<h2>Раздел в разработке</h2>
+						<p>Содержание этого раздела находится в стадии наполнения.</p>
+						<p>Попробуйте выбрать другой раздел меню.</p>
+					</div>
+				`;
+		}
+		mainBody.innerHTML = content;
+		loadDocx(docxUrl);
+	}
+		
+	document.addEventListener('DOMContentLoaded', function() {
+		RenderPage('Home');
+	});
+</script>
+
+</body>
+</html>
+<!--
+RL - Root Localization (Локализация корней)
+RM - Root Methods (Методы нахождения корней)
+IM - Iterative Methods (Итерационные методы)
+SNE - Systems of Nonlinear Equations (Системы нелинейных уравнений)
+IS - Interpolation Splines (Интерполяция сплайнами)
+MNI - Multiple Numerical Integration (Кратные интегралы)
+NPDE - Numerical PDE (Численное решение ДУЧП)
+IVP - Initial Value Problem (Задача Коши)
+-->
